@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"/>
+    <title>Eduverse Applied School</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-image: url('490958.jpg'); /* Add your image URL */
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        header {
+            background-color: rgba(0, 123, 255, 0.8); /* Semi-transparent blue */
+            color: white;
+            padding: 20px;
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .navbar {
+            display: flex;
+            justify-content: center;
+            background-color: rgba(0, 86, 179, 0.8); /* Semi-transparent dark blue */
+            padding: 10px;
+        }
+
+        .navbar a {
+            color: white;
+            text-decoration: none;
+            padding: 10px 20px;
+            font-size: 18px;
+        }
+
+        .navbar a:hover {
+            background-color: rgba(0, 61, 128, 0.8); /* Semi-transparent darker blue */
+            border-radius: 5px;
+        }
+
+        .container {
+            display: flex;
+            justify-content: space-between;
+            padding: 20px;
+        }
+
+        .sidebar {
+            width: 20%;
+            background-color: rgba(173, 216, 230, 0.8); /* Semi-transparent light blue */
+            padding: 20px;
+            border-radius: 10px;
+        }
+
+        .sidebar ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .sidebar li {
+            padding: 10px;
+            font-size: 18px;
+        }
+
+        .content {
+            width: 75%;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            background-color: rgba(255, 255, 255, 0.8); /* Semi-transparent white */
+            padding: 20px;
+            border-radius: 10px;
+        }
+
+        .course {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        img {
+            width: 100%;
+            height: 300px;
+            border: none;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <header>Eduverse Applied School</header>
+    <nav class="navbar">
+        <a href="#" onclick="transferhome()">الصفحة الرئيسية</a>
+        <a href="quran.html" onclick="transfercourses()">جدولك </a>
+        <a href="participation.html" onclick="transferparticipation()">الحضور</a>
+    </nav>
+    <p id="noti"></p>
+    <div class="container">
+        <div class="sidebar">
+            <h3>Our Courses</h3>
+            <ul>
+                <li>تجويد  </li>
+                <li>حفظ القران </li>
+                <li> فعاليات</li>
+                <li>اختبارات قران حتى ختم كتاب الله</li>
+            </ul>
+            <h3>Our Teachers</h3>
+            <ul>
+                <li>Ahmed Hamada <i class="fa-solid fa-person"></i></li>
+                <li>Mr.Abdelrahman <i class="fa-solid fa-person"></i></li>
+                <li>Mr.Mohamed <i class="fa-solid fa-person"></i></li>
+                <li>Mr.Omar<i class="fa-solid fa-person"></i></li>
+            </ul>
+            <h3>Our Admins</h3>
+            <ul>
+                <li>Mr.Ahmed <i class="fa-solid fa-user-tie"></i></li>
+                <li>Mr.Mohamed <i class="fa-solid fa-user-tie"></i></li>
+                <li>Mr.Salem <i class="fa-solid fa-user-tie"></i></li>
+                <li>Mr.Abdelrahman<i class="fa-solid fa-user-tie"></i></li>
+            </ul>
+        </div>
+        <div class="content">
+            <div class="watch">
+                <h3>شعار مسجد النور   <img class="course" src="جامع النور.jpg"></img></h3> 
+                <h3>شعار جمعية خيركم<img class="course" src="جمعية خيركم.jpg" > </img></h3>
+            </div>
+        </div>
+    </div>
+
+<!-- Firebase App (the core Firebase SDK) -->
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+<!-- Firebase Authentication -->
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <script>
+        // Your Firebase configuration
+    // Your Firebase configuration
+    const firebaseConfig = {
+        apiKey: "AIzaSyDaCM4ZD4KTD3lvcvXuaSZC-Q3YpA640fI",
+        authDomain: "tahfeez-ac593.firebaseapp.com",
+        projectId: "tahfeez-ac593",
+        storageBucket: "tahfeez-ac593.firebasestorage.app",
+        messagingSenderId: "85402419890",
+        appId: "1:85402419890:web:f74f35f24f8e566a263fab",
+        measurementId: "G-5S39CLVSPY"
+    };
+
+    // Initialize Firebase
+    const app = firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+
+    // Check authentication state
+    auth.onAuthStateChanged((user) => {
+        if (user) {
+            // User is signed in, allow access
+            console.log("User is logged in:", user);
+        } else {
+            // No user is signed in, redirect to login page
+            window.location.href = "login.html";
+        }
+    });
+
+        const watch = document.getElementById('watch');
+
+        function video() {
+            let watch = document.getElementById("watch"); 
+            watch.style.backgroundImage = "url('490958.jpg')";
+            watch.style.backgroundSize = "cover";
+            watch.style.backgroundPosition = "center";
+            watch.style.height = "300px";
+            watch.style.borderRadius = "10px";
+            watch.style.textAlign = "center";
+            watch.style.fontSize = "18px";
+            watch.style.fontWeight = "bold";
+        }
+
+        window.onload = video;
+    </script>
+</body>
+</html>

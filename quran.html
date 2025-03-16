@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="ar">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>مراجعة القرآن الكريم</title>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        text-align: center;
+        background-color: rgba(245, 245, 245, 1);
+      }
+
+      .container {
+        max-width: 600px;
+        margin: 50px auto;
+        padding: 20px;
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      }
+
+      label {
+        color: rgba(40, 40, 40, 1);
+      }
+
+      button {
+        background-color: rgba(50, 115, 50, 1);
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background-color 0.3s ease-in-out,
+          transform 0.1s ease-in-out;
+      }
+
+      button:hover {
+        background-color: rgba(35, 80, 35, 1);
+        transform: scale(1.05);
+      }
+
+      button:active {
+        background-color: rgba(25, 60, 25, 1);
+        transform: scale(0.95);
+        box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.2) inset;
+      }
+
+      input,
+      button {
+        margin: 10px;
+        padding: 10px;
+        font-size: 16px;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+        background-color: rgba(235, 235, 235, 1);
+      }
+
+      thead {
+        background-color: rgba(180, 180, 180, 1);
+      }
+
+      th,
+      td {
+        border: 1px solid #ddd;
+        padding: 10px;
+        text-align: center;
+      }
+
+      th {
+        background-color: #f2f2f2;
+        color: rgba(70, 70, 70, 1);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h2>جدول حفظ ومراجعة القرآن الكريم</h2>
+      <label for="currentSurah">ما هي السورة التي أنت فيها؟</label>
+      <input type="text" id="currentSurah" placeholder="مثال: البقرة" />
+      <br />
+      <label for="dailyMemorization">كم آية تقدر على حفظها يومياً؟</label>
+      <input type="number" id="dailyMemorization" min="1" max="50" value="5" />
+      <br />
+      <label for="dailyReview">كم صفحة تقدر على مراجعتها يومياً؟</label>
+      <input type="number" id="dailyReview" min="1" max="100" value="5" />
+      <br />
+      <button onclick="generateSchedule()">إنشاء الجدول</button>
+      <h3>جدول الحفظ والمراجعة:</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>اليوم</th>
+            <th>الحفظ</th>
+            <th>المراجعة</th>
+          </tr>
+        </thead>
+        <tbody id="schedule"></tbody>
+      </table>
+    </div>
+
+    <script>
+      // Firebase Initialization
+      const firebaseConfig = {
+        apiKey: "AIzaSyDaCM4ZD4KTD3lvcvXuaSZC-Q3YpA640fI",
+        authDomain: "tahfeez-ac593.firebaseapp.com",
+        projectId: "tahfeez-ac593",
+        storageBucket: "tahfeez-ac593.appspot.com",
+        messagingSenderId: "85402419890",
+        appId: "1:85402419890:web:f74f35f24f8e566a263fab",
+        measurementId: "G-5S39CLVSPY",
+      };
+
+      // Initialize Firebase
+      firebase.initializeApp(firebaseConfig);
+      const auth = firebase.auth();
+
+      // Check Authentication State
+      auth.onAuthStateChanged((user) => {
+        if (!user) {
+          // Redirect to login.html if not authenticated
+          window.location.href = "login.html";
+        }
+      });
+
+      // Generate Schedule Function
+      function generateSchedule() {
+        let currentSurah = document.getElementById("currentSurah").value;
+        let dailyMemorization = parseInt(
+          document.getElementById("dailyMemorization").value
+        );
+        let dailyReview = parseInt(
+          document.getElementById("dailyReview").value
+        );
+        let scheduleTable = document.getElementById("schedule");
+        scheduleTable.innerHTML = "";
+
+        for (let i = 1; i <= 7; i++) {
+          let row = document.createElement("tr");
+          row.innerHTML = `<td>اليوم ${i}</td><td>${dailyMemorization} آيات من سورة ${currentSurah}</td><td>${dailyReview} صفحات</td>`;
+          scheduleTable.appendChild(row);
+        }
+      }
+    </script>
+  </body>
+</html>

@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="ar">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>الحضور و الغياب و تقييم الطلاب</title>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <!-- Tajawal Font -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      /* Global Styles */
+      body {
+        font-family: "Tajawal", sans-serif;
+        direction: rtl;
+        text-align: center;
+        background: linear-gradient(135deg, #1e3c72, #2a5298);
+        margin: 0;
+        padding: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        color: #fff;
+      }
+
+      .container {
+        width: 90%;
+        max-width: 1000px;
+        margin: 20px auto;
+        animation: fadeIn 1s ease-in-out;
+      }
+
+      h1 {
+        font-size: 32px;
+        margin-bottom: 20px;
+        padding: 15px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 10px;
+        backdrop-filter: blur(10px);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+
+      /* Table Styles */
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 15px;
+        overflow: hidden;
+        backdrop-filter: blur(10px);
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        animation: slideIn 0.8s ease-in-out;
+      }
+
+      thead {
+        background: rgba(255, 255, 255, 0.2);
+      }
+
+      th,
+      td {
+        padding: 15px;
+        text-align: center;
+        font-size: 16px;
+        transition: background-color 0.3s ease;
+      }
+
+      th {
+        font-weight: 700;
+        color: #fff;
+        background: rgba(255, 255, 255, 0.25);
+      }
+
+      tbody tr {
+        transition: background-color 0.3s ease, transform 0.3s ease;
+      }
+
+      tbody tr:hover {
+        background: rgba(255, 255, 255, 0.15);
+        transform: scale(1.02);
+      }
+
+      tbody tr:nth-child(even) {
+        background: rgba(255, 255, 255, 0.05);
+      }
+
+      tbody tr:nth-child(even):hover {
+        background: rgba(255, 255, 255, 0.15);
+      }
+
+      /* Loading State */
+      .loading {
+        font-size: 18px;
+        color: #fff;
+        margin-top: 20px;
+      }
+
+      /* Responsive Design */
+      @media (max-width: 768px) {
+        .container {
+          width: 100%;
+        }
+
+        th,
+        td {
+          padding: 12px;
+          font-size: 14px;
+        }
+
+        h1 {
+          font-size: 24px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>الحضور و الغياب و تقييم الطلاب</h1>
+      <table border="1">
+        <thead>
+          <tr>
+            <th>الاسم / Student</th>
+            <th>تقييم الحضور الاسبوعي</th>
+            <th>تقييم المذاكرة و المراجعة</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody">
+          <tr>
+            <td colspan="3" class="loading">جاري تحميل البيانات...</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <script>
+      // Firebase configuration
+      const firebaseConfig = {
+        apiKey: "AIzaSyDaCM4ZD4KTD3lvcvXuaSZC-Q3YpA640fI",
+        authDomain: "tahfeez-ac593.firebaseapp.com",
+        projectId: "tahfeez-ac593",
+        storageBucket: "tahfeez-ac593.appspot.com",
+        messagingSenderId: "85402419890",
+        appId: "1:85402419890:web:f74f35f24f8e566a263fab",
+        measurementId: "G-5S39CLVSPY",
+      };
+
+      // Initialize Firebase
+      const app = firebase.initializeApp(firebaseConfig);
+      const db = firebase.firestore();
+      const auth = firebase.auth();
+
+      // Check Authentication State
+      auth.onAuthStateChanged((user) => {
+        if (!user) {
+          // Redirect to login.html if not authenticated
+          window.location.href = "login.html";
+        } else {
+          // Fetch data if authenticated
+          fetchData();
+        }
+      });
+
+      // Function to fetch data from Firestore
+      function fetchData() {
+        const tableBody = document.getElementById("tableBody");
+
+        // Clear existing rows
+        tableBody.innerHTML = "";
+
+        // Fetch data from Firestore
+        db.collection("grades")
+          .get()
+          .then((querySnapshot) => {
+            if (querySnapshot.empty) {
+              tableBody.innerHTML =
+                '<tr><td colspan="3">لا توجد بيانات متاحة</td></tr>';
+              return;
+            }
+
+            querySnapshot.forEach((doc) => {
+              const data = doc.data();
+
+              // Create a new row
+              const row = document.createElement("tr");
+
+              // Add student name
+              const nameCell = document.createElement("td");
+              nameCell.textContent = data.studentName || "مستخدم";
+              row.appendChild(nameCell);
+
+              // Add attendance rating
+              const attendanceCell = document.createElement("td");
+              attendanceCell.textContent = data.attendance || "في اخر الاسبوع";
+              row.appendChild(attendanceCell);
+
+              // Add study rating
+              const studyCell = document.createElement("td");
+              studyCell.textContent = data.focus || "في اخر الاسبوع";
+              row.appendChild(studyCell);
+
+              // Append the row to the table
+              tableBody.appendChild(row);
+            });
+          })
+          .catch((error) => {
+            console.error("Error fetching data: ", error);
+            tableBody.innerHTML =
+              '<tr><td colspan="3">حدث خطأ أثناء جلب البيانات</td></tr>';
+          });
+      }
+    </script>
+  </body>
+</html>

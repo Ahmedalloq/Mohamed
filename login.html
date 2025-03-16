@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="ar">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"
+    />
+    <link rel="stylesheet" href="register.css" />
+    <title>صفحة تسجيل الدخول الحديثة | أحمد</title>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+  </head>
+
+  <body>
+    <div class="container" id="container">
+      <!-- نموذج تسجيل دخول المعلم -->
+      <div class="form-container sign-up">
+        <form id="teacher-login-form">
+          <h1>تسجيل دخول المعلم</h1>
+          <span>استخدم بيانات المعلم الخاصة بك</span>
+          <input
+            type="email"
+            id="teacher-email"
+            placeholder="البريد الإلكتروني"
+            required
+          />
+          <input
+            type="password"
+            id="teacher-password"
+            placeholder="كلمة المرور"
+            required
+          />
+          <button type="submit">تسجيل الدخول</button>
+          <p id="teacher-login-error" style="color: red"></p>
+        </form>
+      </div>
+
+      <!-- نموذج تسجيل دخول الطالب -->
+      <div class="form-container sign-in">
+        <form id="student-login-form">
+          <h1>تسجيل دخول الطالب</h1>
+          <span>استخدم بريدك الإلكتروني وكلمة المرور</span>
+          <input
+            type="email"
+            id="student-email"
+            placeholder="البريد الإلكتروني"
+            required
+          />
+          <input
+            type="password"
+            id="student-password"
+            placeholder="كلمة المرور"
+            required
+          />
+          <a href="#">نسيت كلمة المرور؟</a>
+          <button type="submit">تسجيل الدخول</button>
+          <p id="student-login-message" style="color: red"></p>
+        </form>
+      </div>
+
+      <!-- حاوية التبديل بين النماذج -->
+      <div class="toggle-container">
+        <div class="toggle">
+          <div class="toggle-panel toggle-left">
+            <h1>مرحبًا بعودتك!</h1>
+            <p>أدخل بياناتك الشخصية لتسجيل دخول الطالب</p>
+            <button class="hidden" id="login">تسجيل دخول الطالب</button>
+          </div>
+          <div class="toggle-panel toggle-right">
+            <h1>وصول المعلم</h1>
+            <p>قم بتسجيل الدخول ببيانات المعلم للوصول إلى الميزات الإدارية</p>
+            <button class="hidden" id="register">تسجيل دخول المعلم</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const firebaseConfig = {
+        apiKey: "AIzaSyDaCM4ZD4KTD3lvcvXuaSZC-Q3YpA640fI",
+        authDomain: "tahfeez-ac593.firebaseapp.com",
+        projectId: "tahfeez-ac593",
+        storageBucket: "tahfeez-ac593.firebasestorage.app",
+        messagingSenderId: "85402419890",
+        appId: "1:85402419890:web:f74f35f24f8e566a263fab",
+        measurementId: "G-5S39CLVSPY",
+      };
+
+      const app = firebase.initializeApp(firebaseConfig);
+      const auth = firebase.auth();
+
+      // تسجيل دخول المعلم
+      document
+        .getElementById("teacher-login-form")
+        .addEventListener("submit", (e) => {
+          e.preventDefault();
+
+          const email = document.getElementById("teacher-email").value;
+          const password = document.getElementById("teacher-password").value;
+
+          if (email === "teacher@tahfeez.com") {
+            auth
+              .signInWithEmailAndPassword(email, password)
+              .then((userCredential) => {
+                alert("تم تسجيل دخول المعلم بنجاح!");
+                window.location.href = "index.html";
+              })
+              .catch((error) => {
+                const errorMessage = error.message;
+                document.getElementById("teacher-login-error").innerText =
+                  "خطأ في تسجيل الدخول: " + errorMessage;
+              });
+          } else {
+            document.getElementById("teacher-login-error").innerText =
+              "تم رفض الوصول. يُسمح فقط للمعلمين بتسجيل الدخول هنا.";
+          }
+        });
+
+      // تسجيل دخول الطالب
+      document
+        .getElementById("student-login-form")
+        .addEventListener("submit", (e) => {
+          e.preventDefault();
+
+          const email = document.getElementById("student-email").value;
+          const password = document.getElementById("student-password").value;
+
+          if (email === "student@tahfeez.com") {
+            auth
+              .signInWithEmailAndPassword(email, password)
+              .then((userCredential) => {
+                alert("تم تسجيل دخول الطالب بنجاح!");
+                window.location.href = "school.html";
+              })
+              .catch((error) => {
+                const errorMessage = error.message;
+                document.getElementById("student-login-message").innerText =
+                  "خطأ في تسجيل الدخول: " + errorMessage;
+              });
+          } else {
+            document.getElementById("student-login-message").innerText =
+              "تم رفض الوصول. يُسمح فقط للطلاب بتسجيل الدخول هنا.";
+          }
+        });
+
+      // تبديل النماذج
+      const container = document.getElementById("container");
+      const registerBtn = document.getElementById("register");
+      const loginBtn = document.getElementById("login");
+
+      registerBtn.addEventListener("click", () => {
+        container.classList.add("active");
+      });
+
+      loginBtn.addEventListener("click", () => {
+        container.classList.remove("active");
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="ar">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>إدخال درجات الطلاب</title>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Tajawal Font -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      /* Global Styles */
+      :root {
+        --primary-color: #28a745;
+        --primary-hover: #218838;
+        --background-light: #f5f7fa;
+        --background-dark: #1e1e1e;
+        --text-light: #333;
+        --text-dark: #f5f7fa;
+        --card-bg-light: #fff;
+        --card-bg-dark: #2c2c2c;
+        --shadow-light: 0 10px 30px rgba(0, 0, 0, 0.1);
+        --shadow-dark: 0 10px 30px rgba(0, 0, 0, 0.3);
+      }
+
+      body {
+        font-family: "Tajawal", Arial, sans-serif;
+        direction: rtl;
+        text-align: center;
+        background: var(--background-light);
+        color: var(--text-light);
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        min-height: 100vh;
+        transition: background 0.3s ease, color 0.3s ease;
+      }
+
+      body.dark-mode {
+        background: var(--background-dark);
+        color: var(--text-dark);
+      }
+
+      h2 {
+        font-size: 24px;
+        margin-bottom: 20px;
+      }
+
+      /* Form Container */
+      form {
+        background: var(--card-bg-light);
+        padding: 30px;
+        border-radius: 15px;
+        box-shadow: var(--shadow-light);
+        width: 90%;
+        max-width: 500px;
+        margin: 20px;
+        transition: transform 0.3s ease, box-shadow 0.3s ease,
+          background 0.3s ease;
+      }
+
+      body.dark-mode form {
+        background: var(--card-bg-dark);
+        box-shadow: var(--shadow-dark);
+      }
+
+      form:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+      }
+
+      /* Input Fields */
+      input {
+        width: 100%;
+        padding: 12px;
+        margin: 10px 0;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        font-size: 16px;
+        transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        background: transparent;
+        color: inherit;
+      }
+
+      input:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 8px rgba(40, 167, 69, 0.3);
+        outline: none;
+      }
+
+      input::placeholder {
+        color: #999;
+      }
+
+      /* Submit Button */
+      button {
+        width: 100%;
+        padding: 12px;
+        margin: 10px 0;
+        background: linear-gradient(
+          135deg,
+          var(--primary-color),
+          var(--primary-hover)
+        );
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 16px;
+        cursor: pointer;
+        transition: background 0.3s ease, transform 0.2s ease;
+      }
+
+      button:hover {
+        background: linear-gradient(
+          135deg,
+          var(--primary-hover),
+          var(--primary-color)
+        );
+        transform: translateY(-2px);
+      }
+
+      button:disabled {
+        background: #ccc;
+        cursor: not-allowed;
+        transform: none;
+      }
+
+      /* Loading Spinner */
+      .loading {
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        border: 3px solid rgba(255, 255, 255, 0.3);
+        border-radius: 50%;
+        border-top-color: #fff;
+        animation: spin 1s ease-in-out infinite;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      /* Message Styling */
+      #message {
+        margin-top: 15px;
+        font-size: 14px;
+        padding: 10px;
+        border-radius: 8px;
+        transition: opacity 0.3s ease;
+      }
+
+      .error {
+        background-color: #ffebee;
+        color: #c62828;
+      }
+
+      .success {
+        background-color: #e8f5e9;
+        color: #2e7d32;
+      }
+
+      /* History Table */
+      #history {
+        width: 90%;
+        max-width: 800px;
+        margin: 20px;
+        background: var(--card-bg-light);
+        border-radius: 15px;
+        box-shadow: var(--shadow-light);
+        padding: 20px;
+        overflow-x: auto;
+      }
+
+      body.dark-mode #history {
+        background: var(--card-bg-dark);
+        box-shadow: var(--shadow-dark);
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+      }
+
+      th,
+      td {
+        padding: 12px;
+        text-align: center;
+        border-bottom: 1px solid #ddd;
+      }
+
+      th {
+        background: var(--primary-color);
+        color: white;
+      }
+
+      tr:nth-child(even) {
+        background: #f9f9f9;
+      }
+
+      body.dark-mode tr:nth-child(even) {
+        background: #3a3a3a;
+      }
+
+      .remove-button,
+      .edit-button {
+        background: #dc3545;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        padding: 5px 10px;
+        cursor: pointer;
+        transition: background 0.3s ease;
+        margin: 2px;
+      }
+
+      .edit-button {
+        background: #ffc107;
+      }
+
+      .remove-button:hover {
+        background: #c82333;
+      }
+
+      .edit-button:hover {
+        background: #e0a800;
+      }
+
+      /* Chart Canvas */
+      .chart-container {
+        width: 80px;
+        height: 80px;
+        margin: 0 auto;
+      }
+
+      /* Filters and Search */
+      #filters {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+        margin-bottom: 20px;
+      }
+
+      #filters input,
+      #filters select {
+        padding: 8px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+      }
+
+      /* Chart Section */
+      #chartContainer {
+        width: 90%;
+        max-width: 800px;
+        margin: 20px;
+        background: var(--card-bg-light);
+        border-radius: 15px;
+        box-shadow: var(--shadow-light);
+        padding: 20px;
+      }
+
+      body.dark-mode #chartContainer {
+        background: var(--card-bg-dark);
+        box-shadow: var(--shadow-dark);
+      }
+
+      /* Dark Mode Toggle */
+      .dark-mode-toggle {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: var(--primary-color);
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.3s ease;
+      }
+
+      .dark-mode-toggle:hover {
+        background: var(--primary-hover);
+      }
+
+      /* Responsive Design */
+      @media (max-width: 600px) {
+        form {
+          padding: 20px;
+        }
+
+        h2 {
+          font-size: 20px;
+        }
+
+        input,
+        button {
+          padding: 10px;
+          font-size: 14px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Dark Mode Toggle -->
+    <button class="dark-mode-toggle" aria-label="تبديل الوضع الليلي">🌙</button>
+
+    <!-- Form -->
+    <form id="gradeForm">
+      <h2>إدخال درجات الطلاب</h2>
+      <input
+        type="text"
+        id="studentName"
+        placeholder="اسم الطالب"
+        required
+        aria-label="اسم الطالب"
+      />
+      <input
+        type="number"
+        id="attendance"
+        placeholder="درجة الحضور (من 10)"
+        min="0"
+        max="10"
+        required
+        aria-label="درجة الحضور"
+      />
+      <input
+        type="number"
+        id="focus"
+        placeholder="درجة التركيز (من 10)"
+        min="0"
+        max="10"
+        required
+        aria-label="درجة التركيز"
+      />
+      <button type="submit" id="submitButton">
+        <span id="buttonText">إضافة الدرجات</span>
+        <span id="loadingSpinner" class="loading" style="display: none"></span>
+      </button>
+      <p id="message" aria-live="polite"></p>
+    </form>
+
+    <!-- Filters and Search -->
+    <div id="filters">
+      <input type="text" id="searchInput" placeholder="بحث باسم الطالب" />
+      <select id="sortSelect">
+        <option value="timestamp">ترتيب حسب التاريخ</option>
+        <option value="attendance">ترتيب حسب الحضور</option>
+        <option value="focus">ترتيب حسب التركيز</option>
+      </select>
+    </div>
+
+    <!-- History Section -->
+    <div id="history">
+      <h2>التقارير السابقة</h2>
+      <button id="exportButton" style="margin-bottom: 20px">
+        تصدير البيانات كـ CSV
+      </button>
+      <table>
+        <thead>
+          <tr>
+            <th>اسم الطالب</th>
+            <th>درجة الحضور</th>
+            <th>درجة التركيز</th>
+            <th>التاريخ والوقت</th>
+            <th>الرسم البياني</th>
+            <th>إجراءات</th>
+          </tr>
+        </thead>
+        <tbody id="historyBody">
+          <!-- Rows will be dynamically added here -->
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Chart Section -->
+    <div id="chartContainer">
+      <h2>تحليل الدرجات</h2>
+      <canvas id="gradesChart"></canvas>
+    </div>
+
+    <script>
+      // Firebase Initialization
+      const firebaseConfig = {
+        apiKey: "AIzaSyDaCM4ZD4KTD3lvcvXuaSZC-Q3YpA640fI",
+        authDomain: "tahfeez-ac593.firebaseapp.com",
+        projectId: "tahfeez-ac593",
+        storageBucket: "tahfeez-ac593.appspot.com",
+        messagingSenderId: "85402419890",
+        appId: "1:85402419890:web:f74f35f24f8e566a263fab",
+        measurementId: "G-5S39CLVSPY",
+      };
+
+      // Initialize Firebase
+      firebase.initializeApp(firebaseConfig);
+      const db = firebase.firestore();
+      const auth = firebase.auth();
+
+      // Check Authentication State
+      auth.onAuthStateChanged((user) => {
+        if (!user) {
+          // Redirect to login.html if not authenticated
+          window.location.href = "login.html";
+        }
+      });
+
+      // Dark Mode Toggle
+      const darkModeToggle = document.querySelector(".dark-mode-toggle");
+      darkModeToggle.addEventListener("click", () => {
+        document.body.classList.toggle("dark-mode");
+        darkModeToggle.textContent = document.body.classList.contains(
+          "dark-mode"
+        )
+          ? "☀️"
+          : "🌙";
+      });
+
+      // Fetch and Display History
+      const historyBody = document.getElementById("historyBody");
+      let allGrades = [];
+
+      function renderHistory(doc) {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+    <td>${doc.data().studentName}</td>
+    <td>${doc.data().attendance}</td>
+    <td>${doc.data().focus}</td>
+    <td>${new Date(doc.data().timestamp?.toDate()).toLocaleString()}</td>
+    <td><div class="chart-container"><canvas id="chart-${
+      doc.id
+    }"></canvas></div></td>
+    <td>
+      <button class="edit-button" data-id="${doc.id}">تعديل</button>
+      <button class="remove-button" data-id="${doc.id}">حذف</button>
+    </td>
+  `;
+        historyBody.appendChild(row);
+
+        // Render Doughnut Chart
+        const ctx = document.getElementById(`chart-${doc.id}`).getContext("2d");
+        new Chart(ctx, {
+          type: "doughnut",
+          data: {
+            labels: ["الحضور", "التركيز"],
+            datasets: [
+              {
+                data: [doc.data().attendance, doc.data().focus],
+                backgroundColor: [
+                  "rgba(40, 167, 69, 0.8)",
+                  "rgba(255, 193, 7, 0.8)",
+                ],
+                borderColor: ["rgba(40, 167, 69, 1)", "rgba(255, 193, 7, 1)"],
+                borderWidth: 1,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                display: false,
+              },
+            },
+          },
+        });
+
+        // Add event listener to the remove button
+        const removeButton = row.querySelector(".remove-button");
+        removeButton.addEventListener("click", () => {
+          if (confirm("هل أنت متأكد من حذف هذا التقرير؟")) {
+            db.collection("grades")
+              .doc(doc.id)
+              .delete()
+              .then(() => {
+                showMessage("تم حذف التقرير بنجاح", "success");
+              })
+              .catch((error) => {
+                showMessage(`حدث خطأ أثناء الحذف: ${error.message}`, "error");
+              });
+          }
+        });
+
+        // Add event listener to the edit button
+        const editButton = row.querySelector(".edit-button");
+        editButton.addEventListener("click", () => {
+          const docData = doc.data();
+          document.getElementById("studentName").value = docData.studentName;
+          document.getElementById("attendance").value = docData.attendance;
+          document.getElementById("focus").value = docData.focus;
+
+          // Change the submit button text to "Update"
+          document.getElementById("buttonText").innerText = "تحديث";
+
+          // Update the form submission to edit the document
+          document.getElementById("gradeForm").onsubmit = async (event) => {
+            event.preventDefault();
+            const updatedData = {
+              studentName: document.getElementById("studentName").value.trim(),
+              attendance: Number(document.getElementById("attendance").value),
+              focus: Number(document.getElementById("focus").value),
+            };
+            await db.collection("grades").doc(doc.id).update(updatedData);
+            showMessage("تم تحديث البيانات بنجاح", "success");
+            document.getElementById("gradeForm").reset();
+            document.getElementById("buttonText").innerText = "إضافة الدرجات";
+          };
+        });
+      }
+
+      // Real-Time Updates (Only when authenticated)
+      // Check Authentication State and Specific User
+      auth.onAuthStateChanged((user) => {
+        if (user) {
+          // Check if the logged-in user is shiekh@tahfeez.com
+          if (user.email === "shiekh@tahfeez.com") {
+            // User is authenticated and is shiekh@tahfeez.com
+            // Fetch and display data
+            db.collection("grades")
+              .orderBy("timestamp", "desc")
+              .onSnapshot((snapshot) => {
+                historyBody.innerHTML = ""; // Clear existing rows
+                allGrades = [];
+                snapshot.forEach((doc) => {
+                  renderHistory(doc);
+                  allGrades.push(doc.data());
+                });
+                updateChart();
+              });
+          } else {
+            // User is authenticated but not shiekh@tahfeez.com
+            // Redirect to school.html
+            window.location.href = "school.html";
+          }
+        } else {
+          // User is not authenticated, redirect to login.html
+          window.location.href = "login.html";
+        }
+      });
+
+      // Form Submission (Only when authenticated)
+      document
+        .getElementById("gradeForm")
+        .addEventListener("submit", async function (event) {
+          event.preventDefault();
+
+          const studentName = document
+            .getElementById("studentName")
+            .value.trim();
+          const attendance = document.getElementById("attendance").value;
+          const focus = document.getElementById("focus").value;
+
+          // Disable button and show loading spinner
+          const submitButton = document.getElementById("submitButton");
+          const buttonText = document.getElementById("buttonText");
+          const loadingSpinner = document.getElementById("loadingSpinner");
+          submitButton.disabled = true;
+          buttonText.style.display = "none";
+          loadingSpinner.style.display = "inline-block";
+
+          try {
+            // Save data to Firestore
+            await db.collection("grades").add({
+              studentName,
+              attendance: Number(attendance),
+              focus: Number(focus),
+              timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+            });
+
+            // Show success message
+            showMessage("تم حفظ البيانات بنجاح", "success");
+
+            // Reset form
+            document.getElementById("gradeForm").reset();
+          } catch (error) {
+            // Show error message
+            showMessage(
+              `حدث خطأ أثناء حفظ البيانات: ${error.message}`,
+              "error"
+            );
+          } finally {
+            // Re-enable button and hide loading spinner
+            submitButton.disabled = false;
+            buttonText.style.display = "inline-block";
+            loadingSpinner.style.display = "none";
+          }
+        });
+
+      // Helper function to display messages
+      function showMessage(message, type) {
+        const messageElement = document.getElementById("message");
+        messageElement.innerText = message;
+        messageElement.className = type; // Add class for styling
+      }
+
+      // Search and Filter Functionality
+      const searchInput = document.getElementById("searchInput");
+      const sortSelect = document.getElementById("sortSelect");
+
+      searchInput.addEventListener("input", () => {
+        const searchTerm = searchInput.value.toLowerCase();
+        const rows = historyBody.querySelectorAll("tr");
+        rows.forEach((row) => {
+          const name = row.querySelector("td").textContent.toLowerCase();
+          row.style.display = name.includes(searchTerm) ? "" : "none";
+        });
+      });
+
+      sortSelect.addEventListener("change", () => {
+        const sortBy = sortSelect.value;
+        db.collection("grades")
+          .orderBy(sortBy, sortBy === "timestamp" ? "desc" : "asc")
+          .onSnapshot((snapshot) => {
+            historyBody.innerHTML = ""; // Clear existing rows
+            snapshot.forEach((doc) => renderHistory(doc));
+          });
+      });
+
+      // Export Data as CSV
+      document.getElementById("exportButton").addEventListener("click", () => {
+        const rows = [
+          ["اسم الطالب", "درجة الحضور", "درجة التركيز", "التاريخ والوقت"],
+        ];
+        allGrades.forEach((grade) => {
+          rows.push([
+            grade.studentName,
+            grade.attendance,
+            grade.focus,
+            new Date(grade.timestamp?.toDate()).toLocaleString(),
+          ]);
+        });
+        const csvContent = rows.map((row) => row.join(",")).join("\n");
+        const blob = new Blob([csvContent], {
+          type: "text/csv;charset=utf-8;",
+        });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = "grades.csv";
+        link.click();
+      });
+
+      // Chart.js Initialization
+      const ctx = document.getElementById("gradesChart").getContext("2d");
+      const gradesChart = new Chart(ctx, {
+        type: "bar",
+        data: {
+          labels: ["الحضور", "التركيز"],
+          datasets: [
+            {
+              label: "متوسط الدرجات",
+              data: [0, 0],
+              backgroundColor: [
+                "rgba(40, 167, 69, 0.2)",
+                "rgba(255, 193, 7, 0.2)",
+              ],
+              borderColor: ["rgba(40, 167, 69, 1)", "rgba(255, 193, 7, 1)"],
+              borderWidth: 1,
+            },
+          ],
+        },
+        options: {
+          scales: {
+            y: {
+              beginAtZero: true,
+              max: 10,
+            },
+          },
+        },
+      });
+
+      function updateChart() {
+        const attendanceAvg =
+          allGrades.reduce((sum, grade) => sum + grade.attendance, 0) /
+            allGrades.length || 0;
+        const focusAvg =
+          allGrades.reduce((sum, grade) => sum + grade.focus, 0) /
+            allGrades.length || 0;
+        gradesChart.data.datasets[0].data = [attendanceAvg, focusAvg];
+        gradesChart.update();
+      }
+    </script>
+  </body>
+</html>
